@@ -3,6 +3,15 @@ from itertools import islice
 import pandas as pd
 import re
 
+# for stopword removal and stemming
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
+
+# download required NLTK resources
+nltk.download('punkt')
+nltk.download('stopwords')
 
 # path to full text files
 u_path = Path("gutenberg_texts") / "underground.txt"
@@ -48,6 +57,7 @@ def split_by_roman_numerals(text):
 
 
 def tokenize(list_sections):
+
     list_lower = [section.lower() for section in list_sections]
     clean_lists = [re.sub(r'[^\w\s]', '', section) for section in list_lower]
     clean_text = [list.split(' ') for list in clean_lists]
@@ -55,22 +65,37 @@ def tokenize(list_sections):
     return clean_text
 
 
+def remove_stopwords_stemming(words):
+
+    stop_words = set(stopwords.words('english'))
+    words_filtered = [word for word in words if word not in stop_words]
+
+    stemmer = PorterStemmer()
+    words_stemmed = [stemmer.stem(word) for word in words_filtered]
+
+    return words_stemmed
+
 
 # split Notes from the Underground at the start and end
 u_start = "*** START OF THE PROJECT GUTENBERG EBOOK NOTES FROM THE UNDERGROUND ***"
 u_end = "*** END OF THE PROJECT GUTENBERG EBOOK NOTES FROM THE UNDERGROUND ***"
 
 underground_sections = tokenize(split_by_roman_numerals(clean_ebook_start_end(u_path, u_start, u_end)))
+underground_processed = [remove_stopwords_stemming(section) for section in underground_sections]
 
 # doing the same for Metamorphosis
 m_start = "*** START OF THE PROJECT GUTENBERG EBOOK METAMORPHOSIS ***"
 m_end = "*** END OF THE PROJECT GUTENBERG EBOOK METAMORPHOSIS ***"
 
 metamorphosis_sections = tokenize(split_by_roman_numerals(clean_ebook_start_end(m_path, m_start, m_end)))
+metamorphosis_processed = [remove_stopwords_stemming(section) for section in metamorphosis_sections]
+
+for section in underground_processed + metamorphosis_processed:
+    print(section[:20])
 
 # convert to dataframe
-underground_df = pd.DataFrame(underground_sections)
-metamorphosis_df = pd.DataFrame(metamorphosis_sections)
+underground_df = pd.DataFrame(underground_processed)
+metamorphosis_df = pd.DataFrame(metamorphosis_processed)
 
 # save to project directory
 underground_df.to_csv("underground.csv", index=False)
