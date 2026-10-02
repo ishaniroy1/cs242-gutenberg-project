@@ -1,5 +1,6 @@
 from pathlib import Path
 from itertools import islice
+import pandas as pd
 import re
 
 
@@ -66,3 +67,11 @@ m_start = "*** START OF THE PROJECT GUTENBERG EBOOK METAMORPHOSIS ***"
 m_end = "*** END OF THE PROJECT GUTENBERG EBOOK METAMORPHOSIS ***"
 
 metamorphosis_sections = tokenize(split_by_roman_numerals(clean_ebook_start_end(m_path, m_start, m_end)))
+
+# convert to dataframe
+underground_df = pd.DataFrame(underground_sections)
+metamorphosis_df = pd.DataFrame(metamorphosis_sections)
+
+# save to project directory
+underground_df.to_csv("underground.csv", index=False)
+metamorphosis_df.to_csv("metamorphosis.csv", index=False)

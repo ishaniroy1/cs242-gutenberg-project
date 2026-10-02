@@ -6,7 +6,7 @@ import sys
 
 def run_pipeline():
     pipeline = [
-            "tokenization.py",
+            "parsing.py",
             "vectorization.py",
             "tf_idf.py"
         ]
