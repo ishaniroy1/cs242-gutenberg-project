@@ -7,7 +7,6 @@ import sys
 def run_pipeline():
     pipeline = [
             "parsing.py",
-            "vectorization.py",
             "tf_idf.py"
         ]
 
