@@ -23,40 +23,46 @@ def clean_ebook_start_end(ebook_path, start, end):
 
 # split chapters/parts (both use roman numerals)
 def split_by_roman_numerals(text):
-    
-    # drop any text before Roman Numeral I
-    parts = re.split(r'(?:^|\n)[ \t]*I[ \t]*(?:\n|$)', text, maxsplit=1)
 
-    if len(parts) < 2:
-        return []
+    ROMAN_LINE = re.compile(r"^[ \t]*([IVXLC]+)[ \t]*$", re.MULTILINE)
+    PART_LINE = re.compile(r"^[ \t]*PART\b.*$", re.MULTILINE)
+    SUBTITLE = re.compile(r"^[ \t]*À Propos of the Wet Snow[ \t]*$", re.MULTILINE)
 
-    content = parts[1]
-    
-    # regex for splitting remaining text by Roman Numerals II-X
-    pattern = r'(?:\n|^)[ \t]*(?:X|IX|VIII|VII|VI|V|IV|III|II)[ \t]*(?:\n|$)'
+    matches = list(ROMAN_LINE.finditer(text))
+    sections, was_short = [], False
 
-    # split and remove empty strings and newlines
-    sections = [section.strip() for section in re.split(pattern, content)]
-    sections_without_newlines = [section.replace("\n", " ") for section in sections]
-    return [s for s in sections_without_newlines if s]
+    min_chars = 300
+
+    for i, m in enumerate(matches):
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        body = text[m.end():end]
+        is_short = len(body.strip()) < min_chars
+
+        if not is_short and not was_short:
+            body = SUBTITLE.sub("", PART_LINE.sub("", body))
+            sections.append(" ".join(body.split()))
+        was_short = is_short
+
+    return sections
+
+
+def tokenize(list_sections):
+    list_lower = [section.lower() for section in list_sections]
+    clean_lists = [re.sub(r'[^\w\s]', '', section) for section in list_lower]
+    clean_text = [list.split(' ') for list in clean_lists]
+
+    return clean_text
+
+
 
 # split Notes from the Underground at the start and end
 u_start = "*** START OF THE PROJECT GUTENBERG EBOOK NOTES FROM THE UNDERGROUND ***"
 u_end = "*** END OF THE PROJECT GUTENBERG EBOOK NOTES FROM THE UNDERGROUND ***"
 
-underground = clean_ebook_start_end(u_path, u_start, u_end)
-
-# split into sections
-underground_sections = split_by_roman_numerals(underground)
-
-for s in underground_sections:
-    print(s[:50])
-
+underground_sections = tokenize(split_by_roman_numerals(clean_ebook_start_end(u_path, u_start, u_end)))
 
 # doing the same for Metamorphosis
 m_start = "*** START OF THE PROJECT GUTENBERG EBOOK METAMORPHOSIS ***"
 m_end = "*** END OF THE PROJECT GUTENBERG EBOOK METAMORPHOSIS ***"
 
-metamorphosis = clean_ebook_start_end(m_path, m_start, m_end)
-
-
+metamorphosis_sections = tokenize(split_by_roman_numerals(clean_ebook_start_end(m_path, m_start, m_end)))
