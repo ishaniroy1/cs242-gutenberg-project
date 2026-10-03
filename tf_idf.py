@@ -22,11 +22,30 @@ def build_counts(books, names):
 
     return pd.DataFrame(matrix, index=labels, columns=vocab)
 
+def calc_tf(counts):
+    return counts.div(counts.sum(axis=1), axis=0)
+
+def calc_idf(counts):
+    num_docs = len(counts)
+    num_t = (counts > 0).sum().to_numpy()
+    return pd.Series(np.log(num_docs / (1 + num_t)), index=counts.columns)
+
+def calc_tfidf(counts):
+    tf = calc_tf(counts)
+    idf = calc_idf(counts)
+    return pd.DataFrame(tf.to_numpy() * idf.to_numpy(), index=counts.index, columns=counts.columns)
+
+
 counts = build_counts(
         [underground_processed, metamorphosis_processed],
         ["underground", "metamorphosis"]
 )
-print(counts.head())
-print(counts.shape)
-print(counts.index.tolist())
+tfidf = calc_tfidf(counts)
 
+"""
+print(tfidf.head())
+print(counts.shape)
+print(tfidf.shape)
+"""
+
+print(max(tfidf))
