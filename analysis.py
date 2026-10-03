@@ -184,12 +184,12 @@ if __name__ == "__main__":
         top_by_n[n] = top_terms_per_book(t, c, n=8)
 
     summary = pd.DataFrame(summary)
-    print("1-gram vs bigram TF-IDF:")
+    print("unigram vs bigram TF-IDF:")
     print(summary.to_string(index=False), "\n")
 
     for b in BOOKS:
         table = pd.DataFrame({f"{n}-gram": list(top_by_n[n][b].index) for n in (1, 2)})
-        print(f"Top 1-gram and bigram for {b}:")
+        print(f"Top unigram and bigram for {b}:")
         print(table.to_string(index=False), "\n")
 
     print(f"Tables and figures saved in {OUT}")
